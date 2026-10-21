@@ -1,164 +1,106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gửi bạn một lời chúc 20/10</title>
-<style>
-:root{--pink:#f6a6bd;--deep:#b94f87;--cream:#fffaf5;--ink:#76518c;--soft:#ffe6f1;--lavender:#eee5ff;--mint:#dff6ec}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 15%,#fffaf5 0 12%,transparent 35%),linear-gradient(135deg,#f5eaff,#ffe2ef 52%,#e4f8f1);font-family:"Comic Sans MS","Segoe UI",ui-rounded,system-ui,sans-serif;color:var(--ink);overflow-x:hidden}
-button{font:inherit}
-.stage{width:min(920px,100%);min-height:560px;display:grid;place-items:center;position:relative;padding:28px 16px}
-.sparkle{position:absolute;color:#e987a7;font-size:24px;opacity:.75;animation:float 4s ease-in-out infinite;pointer-events:none}
-/* Những dấu chân mèo bung tỏa khi nhấn mở thư */
-.paw-burst{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:20}
-.paw-pop{position:absolute;left:var(--x);top:var(--y);font-size:clamp(28px,5vw,46px);line-height:1;opacity:0;filter:drop-shadow(0 3px 3px #b94f8730);animation:pawBurst 900ms cubic-bezier(.15,.7,.25,1) forwards;animation-delay:var(--delay,0ms);transform:translate(-50%,-50%) scale(.35) rotate(var(--rot,0deg))}
-@keyframes pawBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(var(--rot,0deg))}
-18%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(var(--rot,0deg))}
-68%{opacity:.95}
-100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.72) rotate(calc(var(--rot,0deg) + 28deg))}}.s1{top:9%;left:13%}.s2{top:17%;right:15%;animation-delay:1s}.s3{bottom:14%;left:19%;animation-delay:2s}.s4{bottom:18%;right:12%;animation-delay:.5s}
-.envelope-wrap{display:flex;flex-direction:column;align-items:center;gap:24px;transition:opacity .65s,transform .65s cubic-bezier(.2,.9,.2,1)}.envelope-wrap.hidden{opacity:0;transform:translateY(-18px) scale(.88);position:absolute;pointer-events:none}
-.envelope{width:min(380px,80vw);height:255px;position:relative;border:0;background:transparent;cursor:pointer;filter:drop-shadow(0 18px 20px #b34c6a30);transition:transform .35s cubic-bezier(.2,.8,.2,1);outline-offset:10px;perspective:900px;isolation:isolate}
-.envelope::after{content:'✦  ♥  ✦';position:absolute;left:50%;top:-25px;transform:translateX(-50%);font-size:18px;letter-spacing:12px;color:#e987a7;opacity:0;transition:opacity .3s,top .3s;pointer-events:none}
-.envelope:hover::after{opacity:1;top:-32px}
-.envelope:hover{animation:envelopeWiggle .65s ease-in-out;transform:translateY(-7px) scale(1.025)}
-.envelope:active{transform:translateY(-2px) scale(.985)}
-.envelope:hover{transform:translateY(-5px) rotate(-1deg)}
-.envelope:focus-visible{outline:3px solid var(--deep);border-radius:12px}
-.envelope .back{position:absolute;inset:16px 0 0;background:linear-gradient(145deg,#f6c5f0,#cba9f4);border-radius:14px;box-shadow:inset 0 2px 0 #fff8}
-.envelope .paper{position:absolute;left:8%;top:9%;width:84%;height:76%;background:linear-gradient(145deg,#fffdf8,#fff0f4);border:1px solid #f4d7df;border-radius:9px;transition:transform .9s cubic-bezier(.18,.82,.25,1),box-shadow .5s;display:grid;place-items:center;color:#d66a8d;font-size:clamp(18px,3vw,23px);font-weight:800;box-shadow:inset 0 0 0 5px #fff9;z-index:1}
-.envelope .front{position:absolute;inset:16px 0 0;background:linear-gradient(145deg,#f9d9f2,#e9b8f0);clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%);border-radius:0 0 14px 14px;z-index:2;filter:drop-shadow(0 -1px 0 #fff8)}
-.envelope .flap{position:absolute;inset:16px 0 auto;height:62%;background:linear-gradient(160deg,#fff0f8 0%,#d9c5ff 85%);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .8s cubic-bezier(.2,.7,.2,1);z-index:4;backface-visibility:visible;filter:drop-shadow(0 3px 2px #b34c6a20)}
-.envelope .seal{position:absolute;z-index:5;left:50%;top:57%;transform:translate(-50%,-50%);font-size:42px;filter:drop-shadow(0 4px 3px #a33c5d30);transition:opacity .25s,transform .4s}
-.envelope.opening .flap{transform:rotateX(180deg);z-index:0}
-.envelope.opening .seal{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-25deg)}
-.envelope.opening .paper{transform:translateY(-105px) scale(1.04);box-shadow:0 12px 20px #b34c6a22;z-index:3}
-.envelope.opening{animation:openBounce .9s ease both}
-.envelope-wrap.leaving{animation:wrapAway .6s ease forwards}
-.card.show{animation:cardReveal .95s cubic-bezier(.16,1,.3,1) both}.card.closing{display:grid;animation:cardClose .55s cubic-bezier(.7,0,.8,.2) both;pointer-events:none}.envelope-wrap.returning{opacity:0;transform:translateY(12px) scale(.92)}
-.card.show .message>*{animation:messageRise .65s both}
-.card.show .message>*:nth-child(2){animation-delay:.12s}
-.card.show .message>*:nth-child(3){animation-delay:.22s}
-.card.show .message>*:nth-child(4){animation-delay:.32s}
-.card.show .message>*:nth-child(5){animation-delay:.4s}
-.card.show .art{animation:artGlow 1.2s ease both}
-.card.show .cat{animation:catHello 1s .2s ease both;transform-origin:50% 85%}
-.hint{font-size:clamp(16px,2.5vw,20px);color:#80547f;text-align:center;line-height:1.6;margin:0;max-width:440px}.tiny{font-size:13px;opacity:.75;margin-top:-15px}
-.card{display:none;width:min(760px,100%);grid-template-columns:1.05fr .95fr;background:var(--cream);border:2px solid #fff;border-radius:28px;overflow:hidden;box-shadow:0 24px 70px #a73d622b;animation:pop .7s cubic-bezier(.2,.8,.2,1) both;position:relative}
-.card.show{display:grid}.message{padding:clamp(24px,5vw,52px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:linear-gradient(145deg,#fffaf4,#f7efff)}
-.eyebrow{letter-spacing:3px;text-transform:uppercase;font-size:12px;color:#bd6b86;font-weight:800}.message h1{font-family:"Comic Sans MS","Segoe UI",cursive;font-size:clamp(36px,6vw,58px);line-height:1.05;color:#b94f87;text-shadow:1px 2px 0 #ffe0ef;margin:14px 0}.message p{font-size:clamp(15px,2vw,18px);color:#805b82;line-height:1.8;margin:8px 0 18px}.heart{font-size:26px;color:#e77e9f;animation:beat 1.4s infinite}.art{min-height:380px;background:linear-gradient(160deg,#f3e6ff,#dff6ec);display:grid;place-items:center;padding:20px;position:relative}.cat{width:min(310px,100%);height:auto;filter:drop-shadow(0 12px 8px #ad4c6d20)}.restart{border:0;background:linear-gradient(135deg,#c46ac7,#e77eaa);color:white;border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer;box-shadow:0 5px 0 #b84c70;transition:transform .2s}.restart:hover{transform:translateY(-2px)}
-@keyframes cardClose{0%{opacity:1;transform:translateY(0) scale(1) rotate(0)}45%{opacity:.9;transform:translateY(12px) scale(.96) rotate(-2deg)}100%{opacity:0;transform:translateY(50px) scale(.78) rotate(4deg)}}@keyframes envelopeWiggle{0%,100%{rotate:0deg}25%{rotate:-1.4deg}55%{rotate:1.3deg}80%{rotate:-.6deg}}@keyframes openBounce{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-8px) scale(1.025)}70%{transform:translateY(2px) scale(.99)}100%{transform:translateY(0) scale(1)}}@keyframes wrapAway{to{opacity:0;transform:translateY(-25px) scale(.88)}}@keyframes cardReveal{0%{opacity:0;transform:translateY(42px) scale(.88) rotateX(8deg)}65%{opacity:1;transform:translateY(-5px) scale(1.015) rotateX(0)}100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes messageRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes artGlow{0%{filter:saturate(.7);background-color:#ffeaf0}100%{filter:saturate(1);background-color:#ffd0df}}@keyframes catHello{0%{transform:translateY(18px) rotate(-4deg) scale(.94)}55%{transform:translateY(-5px) rotate(3deg) scale(1.02)}100%{transform:translateY(0) rotate(0) scale(1)}}@keyframes float{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-13px) rotate(8deg)}}@keyframes pop{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes beat{50%{transform:scale(1.2)}}
-@media(max-width:620px){.stage{padding:12px 0}.card{grid-template-columns:1fr}.art{min-height:280px;order:-1}.cat{width:230px}.message{padding:26px 24px}.envelope{height:220px}.envelope .paper{font-size:18px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
-</style>
-</head>
-<body>
-<main class="stage" aria-label="Thiệp chúc mừng ngày 20 tháng 10">
-  <div class="paw-burst" id="pawBurst" aria-hidden="true"></div>
-  <span class="sparkle s1">♥</span><span class="sparkle s2">✿</span><span class="sparkle s3">♥</span><span class="sparkle s4">✧</span>
-  <section class="envelope-wrap" id="envelopeWrap">
-    <button class="envelope" id="envelope" aria-label="Nhấn để mở thư chúc mừng 20/10">
-      <span class="back"></span><span class="paper">Một lời chúc nhỏ ♡</span><span class="front"></span><span class="flap"></span><span class="seal">💗</span>
-    </button>
-    <p class="hint">Có một điều dễ thương muốn gửi đến bạn…<br><strong>Nhấn vào phong thư để mở nhé!</strong> 🐾</p>
-    <p class="tiny">Dành tặng riêng bạn nhân ngày 20/10</p>
-  </section>
-  <section class="card" id="card" aria-live="polite">
-    <div class="message">
-      <div class="eyebrow">Gửi bạn yêu thương</div>
-      <h1>Chúc mừng<br>20/10!</h1>
-      <p>Chúc bạn luôn rạng rỡ như hoa, dịu dàng với chính mình và gặp thật nhiều điều tử tế. Mong mỗi ngày của bạn đều có niềm vui, tiếng cười và những người chân thành ở bên. 🌷</p>
-      <div class="heart">♥</div>
-      <button class="restart" id="restart">Gấp thư lại ♡</button>
-    </div>
-    <div class="art" aria-label="Chú mèo dễ thương cầm bó hoa">
-      <svg class="cat" viewBox="0 0 320 360" role="img" aria-label="Mèo trắng má hồng đang ôm bó hoa">
-        <ellipse cx="163" cy="321" rx="90" ry="13" fill="#e99bb5" opacity=".35"/>
-        <path d="M218 276 C282 295 277 242 245 244 C231 244 231 258 243 260" fill="none" stroke="#9b6579" stroke-width="17" stroke-linecap="round"/>
-        <path d="M102 103 L91 34 Q89 23 102 32 L146 68" fill="#fffaf7" stroke="#9b6579" stroke-width="5" stroke-linejoin="round"/>
-        <path d="M182 68 L224 32 Q237 23 235 38 L225 108" fill="#fffaf7" stroke="#9b6579" stroke-width="5" stroke-linejoin="round"/>
-        <path d="M99 74 L101 48 L126 69" fill="#f4a6bd"/><path d="M198 69 L225 47 L220 82" fill="#f4a6bd"/>
-        <path d="M89 124 C89 84 119 65 161 65 C205 65 235 88 235 128 L230 182 C227 213 201 231 162 231 C121 231 94 208 91 180 Z" fill="#fffaf7" stroke="#9b6579" stroke-width="5"/>
-        <path d="M194 78 Q222 98 219 141 Q216 174 192 191 Q208 147 194 78" fill="#b68a9a" opacity=".9"/>
-        <path d="M125 137 Q139 153 151 137" fill="none" stroke="#654354" stroke-width="5" stroke-linecap="round"/><path d="M174 137 Q188 153 200 137" fill="none" stroke="#654354" stroke-width="5" stroke-linecap="round"/>
-        <ellipse cx="116" cy="158" rx="15" ry="8" fill="#f4a2ba"/><ellipse cx="207" cy="158" rx="15" ry="8" fill="#f4a2ba"/>
-        <path d="M156 157 Q162 149 168 157 Q166 166 162 166 Q157 165 156 157" fill="#d66b8c"/><path d="M162 166 Q151 179 143 167 M162 166 Q174 179 183 167" fill="none" stroke="#654354" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M120 221 Q95 245 112 292 Q126 319 164 317 Q206 319 220 290 Q231 255 202 221" fill="#fffaf7" stroke="#9b6579" stroke-width="5"/>
-        <path d="M116 277 Q94 289 105 304 Q120 316 143 300 M203 278 Q224 289 215 304 Q201 316 180 300" fill="none" stroke="#9b6579" stroke-width="5" stroke-linecap="round"/>
-        <!-- bouquet stems -->
-        <path d="M157 284 L121 203 M166 286 L183 199 M174 286 L219 219 M163 286 L150 185" stroke="#5e9c76" stroke-width="5" stroke-linecap="round"/>
-        <path d="M135 242 Q111 226 113 214 Q137 217 142 237 M187 247 Q211 226 226 233 Q213 253 190 257 M151 224 Q129 201 140 189 Q158 205 157 226" fill="#78b88b"/>
-        <!-- flower 1 -->
-        <g transform="translate(119 194)"><g fill="#f58eaf"><ellipse cy="-15" rx="8" ry="13"/><ellipse cy="15" rx="8" ry="13"/><ellipse cx="-15" rx="13" ry="8"/><ellipse cx="15" rx="13" ry="8"/><ellipse cx="-11" cy="-11" rx="8" ry="12" transform="rotate(-45 -11 -11)"/><ellipse cx="11" cy="-11" rx="8" ry="12" transform="rotate(45 11 -11)"/><ellipse cx="-11" cy="11" rx="8" ry="12" transform="rotate(45 -11 11)"/><ellipse cx="11" cy="11" rx="8" ry="12" transform="rotate(-45 11 11)"/></g><circle r="8" fill="#ffdc83"/></g>
-        <!-- flower 2 -->
-        <g transform="translate(183 185)"><g fill="#ffd1df"><ellipse cy="-16" rx="9" ry="13"/><ellipse cy="16" rx="9" ry="13"/><ellipse cx="-16" rx="13" ry="9"/><ellipse cx="16" rx="13" ry="9"/><ellipse cx="-11" cy="-11" rx="9" ry="12" transform="rotate(-45 -11 -11)"/><ellipse cx="11" cy="-11" rx="9" ry="12" transform="rotate(45 11 -11)"/><ellipse cx="-11" cy="11" rx="9" ry="12" transform="rotate(45 -11 11)"/><ellipse cx="11" cy="11" rx="9" ry="12" transform="rotate(-45 11 11)"/></g><circle r="8" fill="#f5c75f"/></g>
-        <!-- flower 3 -->
-        <g transform="translate(218 215)"><g fill="#e96891"><ellipse cy="-13" rx="7" ry="11"/><ellipse cy="13" rx="7" ry="11"/><ellipse cx="-13" rx="11" ry="7"/><ellipse cx="13" rx="11" ry="7"/><ellipse cx="-9" cy="-9" rx="7" ry="10" transform="rotate(-45 -9 -9)"/><ellipse cx="9" cy="-9" rx="7" ry="10" transform="rotate(45 9 -9)"/><ellipse cx="-9" cy="9" rx="7" ry="10" transform="rotate(45 -9 9)"/><ellipse cx="9" cy="9" rx="7" ry="10" transform="rotate(-45 9 9)"/></g><circle r="7" fill="#ffe08c"/></g>
-        <!-- wrapping paper -->
-        <path d="M111 229 Q164 210 222 233 L201 286 Q166 304 133 281 Z" fill="#f8a8c0" stroke="#d97598" stroke-width="3"/>
-        <path d="M111 229 L164 260 L133 281 Z M222 233 L164 260 L201 286 Z" fill="#ffd6e2"/>
-        <path d="M162 263 C140 244 129 262 147 272 L163 281 L177 270 C196 252 179 244 162 263Z" fill="#d95e85" stroke="#c84f78" stroke-width="2"/>
-        <path d="M161 278 L159 293 M168 278 L181 290" stroke="#c84f78" stroke-width="5" stroke-linecap="round"/>
-        <g fill="#e77e9f"><path d="M68 96 l4 9 10 1-8 6 2 10-8-6-9 5 3-10-7-7 10 1Z"/><path d="M254 155 l3 7 8 1-6 5 2 8-7-5-7 4 2-7-6-6 8 1Z"/></g>
-      </svg>
-    </div>
-  </section>
-</main>
-<script>
-const envelope = document.getElementById('envelope');
-const envelopeWrap = document.getElementById('envelopeWrap');
-const card = document.getElementById('card');
-const restart = document.getElementById('restart');
-const pawBurst = document.getElementById('pawBurst');
-let pawTimer;
-// Hình bàn chân mèo dạng SVG được dùng làm con trỏ khi rê vào phong thư.
-const catCursor = "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 40 40%22%3E%3Cpath d=%22M10 17C3 13 6 4 11 7C15 9 14 14 14 16M19 13C15 7 19 1 23 5C26 8 24 12 23 15M27 16C25 10 31 6 34 11C37 16 32 19 30 20M10 23C3 25 6 35 14 34L28 32C36 30 34 23 28 21C23 19 17 20 10 23Z%22 fill=%22%23fff7f8%22 stroke=%22%23a64f70%22 stroke-width=%222%22/%3E%3Cellipse cx=%2219%22 cy=%2226%22 rx=%224%22 ry=%223%22 fill=%22%23f08eab%22/%3E%3C/svg%3E') 10 8, pointer";
-envelope.style.cursor = catCursor;
-function burstPaws() {
-  pawBurst.replaceChildren();
-  window.clearTimeout(pawTimer);
-  const stageRect = document.querySelector('.stage').getBoundingClientRect();
-  const envRect = envelope.getBoundingClientRect();
-  const x = envRect.left - stageRect.left + envRect.width / 2;
-  const centerY = envRect.top - stageRect.top + envRect.height * 0.48;
-  const paws = ['🐾','🐾','🐾','🐾','🐾','🐾','🐾','🐾','🐾','🐾'];
-  paws.forEach((paw, i) => {
-    const angle = (Math.PI * 2 * i / paws.length) - Math.PI / 2;
-    const distance = 105 + (i % 3) * 24;
-    const el = document.createElement('span');
-    el.className = 'paw-pop';
-    el.textContent = paw;
-    el.style.setProperty('--x', `${x}px`);
-    el.style.setProperty('--y', `${centerY}px`);
-    el.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
-    el.style.setProperty('--dy', `${Math.sin(angle) * distance}px`);
-    el.style.setProperty('--rot', `${(i % 2 ? 1 : -1) * (12 + i * 3)}deg`);
-    el.style.setProperty('--delay', `${(i % 4) * 35}ms`);
-    pawBurst.appendChild(el);
-  });
-  pawTimer = window.setTimeout(() => pawBurst.replaceChildren(), 1100);
-}
-envelope.addEventListener('click', () => {
-  burstPaws();
-  envelope.classList.add('opening');
-  window.setTimeout(() => {
-    envelopeWrap.classList.add('hidden');
-    card.classList.add('show');
-  }, 520);
-});
-restart.addEventListener('click', () => {
-  if (!card.classList.contains('show')) return;
-  card.classList.remove('show');
-  card.classList.add('closing');
-  envelopeWrap.classList.remove('hidden');
-  envelopeWrap.classList.add('returning');
-  envelope.classList.remove('opening');
-  window.setTimeout(() => {
-    card.classList.remove('closing');
-    envelopeWrap.classList.remove('returning');
-  }, 560);
-});
-</script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff0f5">
+    <meta name="description" content="Một tấm thiệp nhỏ gửi lời chúc yêu thương nhân ngày Phụ nữ Việt Nam 20/10.">
+    <title>Chúc mừng ngày 20/10 ♡</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="stage" aria-label="Thiệp chúc mừng ngày Phụ nữ Việt Nam 20/10">
+      <button class="music-toggle" id="musicToggle" type="button" aria-pressed="false">♫ Bật nhạc</button>
+      <span class="decoration decoration-one" aria-hidden="true">♡</span>
+      <span class="decoration decoration-two" aria-hidden="true">✿</span>
+      <span class="decoration decoration-three" aria-hidden="true">✧</span>
+      <span class="decoration decoration-four" aria-hidden="true">♡</span>
+      <span class="scene-sticker sticker-flower" aria-hidden="true">🌷</span>
+      <span class="scene-sticker sticker-paw" aria-hidden="true">🐾</span>
+      <span class="scene-sticker sticker-heart" aria-hidden="true">♥</span>
+      <span class="scene-sticker sticker-sparkle" aria-hidden="true">✧</span>
+      <span class="scene-sticker sticker-ribbon" aria-hidden="true">🎀</span>
+      <span class="scene-date" aria-hidden="true"><strong>20</strong><span>tháng 10</span></span>
+      <span class="scene-note" aria-hidden="true">Gửi chút yêu thương ♡</span>
+      <div class="paw-burst" id="pawBurst" aria-hidden="true"></div>
+      <div class="rose-burst" id="roseBurst" aria-hidden="true"></div>
+
+      <section class="envelope-wrap" id="envelopeWrap" aria-label="Phong thư">
+        <button
+          class="envelope"
+          id="envelope"
+          type="button"
+          aria-label="Nhấn để mở thư chúc mừng 20/10"
+          aria-expanded="false"
+          aria-controls="greetingCard"
+        >
+          <span class="envelope-back" aria-hidden="true"></span>
+          <span class="paper" aria-hidden="true"><span>Một lời chúc nhỏ ♡</span></span>
+          <span class="envelope-front" aria-hidden="true"></span>
+          <span class="envelope-flap" aria-hidden="true"></span>
+          <span class="seal" aria-hidden="true">♡</span>
+          <span class="envelope-hearts" aria-hidden="true">
+            <span>♡</span>
+            <span>♥</span>
+            <span>♡</span>
+            <span>♥</span>
+            <span>♡</span>
+          </span>
+        </button>
+        <p class="dedication">Một bức tâm thư chỉ có người có một tâm hồn đẹp mới có thể mở ra được</p>
+      </section>
+
+      <article class="card" id="greetingCard" aria-labelledby="cardTitle" hidden>
+        <section class="message">
+          <p class="eyebrow">Gửi bạn yêu thương</p>
+          <h1 id="cardTitle" tabindex="-1">Chúc mừng <span>20/10!</span></h1>
+          <p class="greeting">Chúc bạn luôn rạng rỡ như hoa, dịu dàng với chính mình và gặp thật nhiều điều tử tế. Mong mỗi ngày của bạn đều có niềm vui, tiếng cười và những người chân thành ở bên.</p>
+          <span class="heart" aria-hidden="true">♡</span>
+          <div class="actions">
+            <button class="restart" id="restart" type="button" disabled>Gấp thư lại ♡</button>
+            <div class="gift-action-slot">
+              <button class="gift-trigger" id="giftTrigger" type="button" aria-expanded="false" aria-controls="giftPanel" hidden>🎁 Mở quà</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="art">
+          <img class="letter-cat" src="assets/letter-cat.png" alt="Chú mèo đội mũ rộng vành, thổi kèn trumpet và cầm một bó hoa đỏ trắng" width="712" height="784" decoding="async">
+          <span class="art-caption" aria-hidden="true">Đôi lời muốn nói ♡</span>
+        </div>
+
+        <section class="gift-panel" id="giftPanel" role="dialog" aria-modal="true" aria-labelledby="giftTitle" aria-describedby="giftMessage" hidden>
+          <div class="gift-dialog">
+            <h2 class="sr-only" id="giftTitle">Một món quà muốn gửi bạn</h2>
+            <div class="gift-scene" id="giftScene">
+              <span class="gift-sparkle sparkle-one" aria-hidden="true">✦</span>
+              <span class="gift-sparkle sparkle-two" aria-hidden="true">♡</span>
+              <span class="gift-sparkle sparkle-three" aria-hidden="true">✧</span>
+              <span class="gift-sparkle sparkle-four" aria-hidden="true">✿</span>
+              <svg class="gift-title-arc" viewBox="0 0 490 135" aria-hidden="true">
+                <defs>
+                  <path id="giftTitleArcPath" d="M 30 112 Q 245 -20 460 112"></path>
+                </defs>
+                <text>
+                  <textPath href="#giftTitleArcPath" startOffset="50%" text-anchor="middle">Một món quà muốn gửi bạn</textPath>
+                </text>
+              </svg>
+              <img class="gift-kitten" id="giftKitten" src="assets/kitten-gift.png" alt="Mèo con đeo kính ôm bó hoa hồng, trồi lên từ hộp quà" width="573" height="928" decoding="async">
+              <div class="gift-box" id="giftBox" aria-hidden="true">
+                <div class="gift-lid" id="giftLid"><span class="lid-ribbon"></span><span class="bow-loop bow-left"></span><span class="bow-loop bow-right"></span></div>
+                <div class="gift-base"><span class="base-ribbon"></span><span class="gift-heart">♡</span></div>
+              </div>
+            </div>
+            <p class="gift-message" id="giftMessage">Một bó hoa dành tặng bạn 🌷 Chúc bạn luôn rạng rỡ và hạnh phúc!</p>
+            <div class="gift-actions">
+              <button class="gift-close" id="giftClose" type="button" hidden>Đóng quà ♡</button>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <p class="sr-only" id="status" aria-live="polite">Phong thư đang chờ bạn mở.</p>
+    </main>
+  </body>
 </html>
