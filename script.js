@@ -328,44 +328,47 @@ function pressPawCursor(event) {
 }
 
 function dodgeNoButton(event) {
-  const choicesRect = loveChoices.getBoundingClientRect();
-  const noRect = loveNo.getBoundingClientRect();
-  const yesRect = loveYes.getBoundingClientRect();
-  const maxLeft = Math.max(0, choicesRect.width - noRect.width);
-  const maxTop = Math.max(0, choicesRect.height - noRect.height);
-  const yes = {
-    left: yesRect.left - choicesRect.left,
-    top: yesRect.top - choicesRect.top,
-    right: yesRect.right - choicesRect.left,
-    bottom: yesRect.bottom - choicesRect.top,
-  };
-  const pointerX = event && Number.isFinite(event.clientX)
-    ? event.clientX - choicesRect.left
-    : noRect.left - choicesRect.left + noRect.width / 2;
-  const pointerY = event && Number.isFinite(event.clientY)
-    ? event.clientY - choicesRect.top
-    : noRect.top - choicesRect.top + noRect.height / 2;
-  const currentLeft = noRect.left - choicesRect.left;
-  const currentTop = noRect.top - choicesRect.top;
-  let bestPosition = { left: currentLeft, top: currentTop, distance: -1 };
+  const startRect = loveNo.getBoundingClientRect();
+  const pointerX = event && Number.isFinite(event.clientX) ? event.clientX : startRect.left + startRect.width / 2;
+  const pointerY = event && Number.isFinite(event.clientY) ? event.clientY : startRect.top + startRect.height / 2;
 
-  for (let row = 0; row <= 8; row++) {
-    for (let column = 0; column <= 12; column++) {
-      const left = maxLeft * column / 12;
-      const top = maxTop * row / 8;
-      const overlapsYes = left < yes.right + 10
-        && left + noRect.width > yes.left - 10
-        && top < yes.bottom + 8
-        && top + noRect.height > yes.top - 8;
+  loveNo.classList.add("is-dodging");
+  loveNo.style.left = `${startRect.left}px`;
+  loveNo.style.top = `${startRect.top}px`;
+
+  const noRect = loveNo.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
+  const yesRect = loveYes.getBoundingClientRect();
+  const minLeft = Math.max(12, Math.ceil(cardRect.left + 12));
+  const minTop = Math.max(12, Math.ceil(cardRect.top + 12));
+  const maxLeft = Math.min(window.innerWidth - noRect.width - 12, Math.floor(cardRect.right - noRect.width - 12));
+  const maxTop = Math.min(window.innerHeight - noRect.height - 12, Math.floor(cardRect.bottom - noRect.height - 12));
+  const spanX = Math.max(0, maxLeft - minLeft);
+  const spanY = Math.max(0, maxTop - minTop);
+  let bestPosition = { left: startRect.left, top: startRect.top, distance: -1 };
+
+  for (let row = 0; row <= 12; row++) {
+    for (let column = 0; column <= 16; column++) {
+      const left = minLeft + spanX * column / 16;
+      const top = minTop + spanY * row / 12;
+      const overlapsYes = left < yesRect.right + 12
+        && left + noRect.width > yesRect.left - 12
+        && top < yesRect.bottom + 12
+        && top + noRect.height > yesRect.top - 12;
       if (overlapsYes) continue;
 
-      const dx = Math.max(left - pointerX, 0, pointerX - (left + noRect.width));
-      const dy = Math.max(top - pointerY, 0, pointerY - (top + noRect.height));
-      const distanceFromPointer = Math.hypot(dx, dy);
-      const distanceFromCurrent = Math.hypot(left - currentLeft, top - currentTop);
-      const score = distanceFromPointer + Math.min(distanceFromCurrent, 100) * .2;
+      const distanceFromPointer = Math.hypot(left + noRect.width / 2 - pointerX, top + noRect.height / 2 - pointerY);
+      const distanceFromStart = Math.hypot(left - startRect.left, top - startRect.top);
+      const score = distanceFromPointer + Math.min(distanceFromStart, 120) * .12;
       if (score > bestPosition.distance) bestPosition = { left, top, distance: score };
     }
+  }
+
+  if (bestPosition.distance < 0) {
+    bestPosition = {
+      left: Math.max(12, Math.min(window.innerWidth - noRect.width - 12, pointerX < window.innerWidth / 2 ? window.innerWidth - noRect.width - 12 : 12)),
+      top: Math.max(12, Math.min(window.innerHeight - noRect.height - 12, pointerY < window.innerHeight / 2 ? window.innerHeight - noRect.height - 12 : 12)),
+    };
   }
 
   loveNo.style.left = `${bestPosition.left}px`;
@@ -388,6 +391,7 @@ async function openLetter() {
   loveAnswer.textContent = "";
   loveNo.style.left = "";
   loveNo.style.top = "";
+  loveNo.classList.remove("is-dodging");
   state = "opening";
   envelope.disabled = true;
   status.textContent = "Phong thư đang mở…";
@@ -551,6 +555,7 @@ async function closeLetter() {
   loveAnswer.textContent = "";
   loveNo.style.left = "";
   loveNo.style.top = "";
+  loveNo.classList.remove("is-dodging");
   envelope.disabled = false;
   envelope.setAttribute("aria-expanded", "false");
   giftTrigger.setAttribute("aria-expanded", "false");
@@ -589,14 +594,13 @@ loveNo.addEventListener("pointerenter", (event) => {
   dodgeNoButton(event);
 });
 
-loveChoices.addEventListener("pointermove", (event) => {
+document.addEventListener("pointermove", (event) => {
   if (event.pointerType !== "mouse") return;
   if (Date.now() - lastNoDodgeAt < 80) return;
 
   const noRect = loveNo.getBoundingClientRect();
-  const dx = Math.max(noRect.left - event.clientX, 0, event.clientX - noRect.right);
-  const dy = Math.max(noRect.top - event.clientY, 0, event.clientY - noRect.bottom);
-  if (Math.hypot(dx, dy) > 140) return;
+  const distance = Math.hypot(event.clientX - (noRect.left + noRect.width / 2), event.clientY - (noRect.top + noRect.height / 2));
+  if (distance > 170) return;
 
   lastNoDodgeAt = Date.now();
   dodgeNoButton(event);
