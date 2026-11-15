@@ -3,6 +3,7 @@
 const envelope = document.getElementById("envelope");
 const envelopeWrap = document.getElementById("envelopeWrap");
 const paper = document.querySelector(".paper");
+const envelopeLock = document.querySelector(".envelope-lock");
 const card = document.getElementById("greetingCard");
 const cardTitle = document.getElementById("cardTitle");
 const letterCat = document.querySelector(".letter-cat");
@@ -24,8 +25,11 @@ const stage = document.querySelector(".stage");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const motion = {
+  unlock: 620,
   flap: 620,
-  paper: 820,
+  paper: 560,
+  paperMessage: 1050,
+  paperFade: 420,
   expand: 720,
   collapse: 520,
   giftBox: 640,
@@ -151,6 +155,30 @@ function playClickSound() {
   gain.connect(context.destination);
   oscillator.start(now);
   oscillator.stop(now + .08);
+}
+
+function playLockRattle() {
+  const context = getClickAudioContext();
+  if (!context) return;
+
+  const now = context.currentTime;
+  [0, .11, .24, .39].forEach((offset, index) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const start = now + offset;
+    const frequency = 1450 + (index % 2) * 520;
+
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * .74, start + .055);
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.linearRampToValueAtTime(.045, start + .008);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + .075);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + .08);
+  });
 }
 
 function getClickAudioContext() {
@@ -344,6 +372,13 @@ async function openLetter() {
   envelope.disabled = true;
   status.textContent = "Phong thư đang mở…";
 
+  await waitForMotion(envelopeLock, "animationend", "lock-rattle", motion.unlock, () => {
+    envelope.classList.add("is-unlocking");
+    playLockRattle();
+  });
+  envelope.classList.remove("is-unlocking");
+  envelope.classList.add("is-unlocked");
+
   await waitForMotion(envelope.querySelector(".envelope-flap"), "transitionend", "transform", motion.flap, () => {
     envelope.classList.add("is-flap-open");
   });
@@ -351,6 +386,10 @@ async function openLetter() {
   burstPaws();
   await waitForMotion(paper, "transitionend", "transform", motion.paper, () => {
     paper.classList.add("is-pulled");
+  });
+  await waitForMotion(paper.querySelector(".paper-message"), "animationend", "paper-message-flash", motion.paperMessage, () => {});
+  await waitForMotion(paper, "transitionend", "opacity", motion.paperFade, () => {
+    paper.classList.add("is-fading");
   });
 
   playTrumpetSound();
@@ -480,11 +519,13 @@ async function closeLetter() {
 
   await waitForMotion(paper, "transitionend", "transform", motion.paper, () => {
     paper.classList.remove("is-pulled");
+    paper.classList.remove("is-fading");
   });
 
   await waitForMotion(envelope.querySelector(".envelope-flap"), "transitionend", "transform", motion.flap, () => {
     envelope.classList.remove("is-flap-open");
   });
+  envelope.classList.remove("is-unlocked");
 
   state = "closed";
   envelope.disabled = false;
