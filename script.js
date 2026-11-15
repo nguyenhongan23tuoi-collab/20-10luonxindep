@@ -7,6 +7,10 @@ const envelopeLock = document.querySelector(".envelope-lock");
 const card = document.getElementById("greetingCard");
 const cardTitle = document.getElementById("cardTitle");
 const letterCat = document.querySelector(".letter-cat");
+const loveChoices = document.getElementById("loveChoices");
+const loveYes = document.getElementById("loveYes");
+const loveNo = document.getElementById("loveNo");
+const loveAnswer = document.getElementById("loveAnswer");
 const restart = document.getElementById("restart");
 const giftTrigger = document.getElementById("giftTrigger");
 const giftPanel = document.getElementById("giftPanel");
@@ -20,7 +24,9 @@ const giftClose = document.getElementById("giftClose");
 const pawBurst = document.getElementById("pawBurst");
 const roseBurst = document.getElementById("roseBurst");
 const status = document.getElementById("status");
+const musicWidget = document.getElementById("musicWidget");
 const musicToggle = document.getElementById("musicToggle");
+const backgroundMusic = document.getElementById("backgroundMusic");
 const stage = document.querySelector(".stage");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -45,12 +51,8 @@ let pawTimer;
 let roseTimer;
 let cursorReleaseTimer;
 let clickAudioContext;
-let musicGain;
-let musicTimer;
-let musicEnabled = false;
-let musicPreferenceSet = false;
-let musicNextNoteAt = 0;
-let musicNoteIndex = 0;
+let lastNoDodgeAt = 0;
+let musicAutoplayBlocked = false;
 
 function waitForMotion(element, eventName, expectedName, duration, update) {
   if (reducedMotion.matches) {
@@ -192,74 +194,45 @@ function getClickAudioContext() {
 }
 
 function updateMusicToggle() {
-  musicToggle.textContent = musicEnabled ? "♫ Tắt nhạc" : "♫ Bật nhạc";
-  musicToggle.setAttribute("aria-pressed", String(musicEnabled));
-  musicToggle.setAttribute("aria-label", `${musicEnabled ? "Tắt" : "Bật"} nhạc nền`);
+  const isPlaying = !backgroundMusic.paused && !backgroundMusic.ended;
+  musicToggle.textContent = isPlaying ? "♫ Tắt nhạc" : "♫ Bật nhạc";
+  musicToggle.setAttribute("aria-pressed", String(isPlaying));
+  musicToggle.setAttribute("aria-label", `${isPlaying ? "Tắt" : "Bật"} nhạc nền`);
 }
 
-function scheduleBackgroundMusic() {
-  if (!musicEnabled || !clickAudioContext || !musicGain) return;
+async function startBackgroundMusic() {
+  try {
+    await backgroundMusic.play();
+    musicAutoplayBlocked = false;
+    return true;
+  } catch (error) {
+    updateMusicToggle();
+    if (error.name === "NotAllowedError") {
+      musicAutoplayBlocked = true;
+      return false;
+    }
 
-  const notes = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 783.99, 698.46];
-  const horizon = clickAudioContext.currentTime + 1;
-
-  while (musicNextNoteAt < horizon) {
-    const oscillator = clickAudioContext.createOscillator();
-    const noteGain = clickAudioContext.createGain();
-    const noteTime = musicNextNoteAt;
-
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(notes[musicNoteIndex], noteTime);
-    noteGain.gain.setValueAtTime(.0001, noteTime);
-    noteGain.gain.linearRampToValueAtTime(.14, noteTime + .04);
-    noteGain.gain.exponentialRampToValueAtTime(.0001, noteTime + .42);
-    oscillator.connect(noteGain);
-    noteGain.connect(musicGain);
-    oscillator.start(noteTime);
-    oscillator.stop(noteTime + .44);
-
-    musicNoteIndex = (musicNoteIndex + 1) % notes.length;
-    musicNextNoteAt += .52;
-  }
-}
-
-function startBackgroundMusic() {
-  const context = getClickAudioContext();
-  if (!context) {
-    musicToggle.disabled = true;
-    musicToggle.textContent = "♫ Không hỗ trợ";
+    status.textContent = "Không phát được tệp nhạc. Hãy kiểm tra kết nối và thử lại.";
+    console.error("Could not play the supplied background music.", error);
     return false;
   }
-  if (musicEnabled) return true;
-
-  if (!musicGain) {
-    musicGain = context.createGain();
-    musicGain.gain.value = .0001;
-    musicGain.connect(context.destination);
-  }
-
-  musicEnabled = true;
-  musicNextNoteAt = context.currentTime + .05;
-  musicGain.gain.cancelScheduledValues(context.currentTime);
-  musicGain.gain.setValueAtTime(Math.max(musicGain.gain.value, .0001), context.currentTime);
-  musicGain.gain.exponentialRampToValueAtTime(.06, context.currentTime + .25);
-  scheduleBackgroundMusic();
-  musicTimer = window.setInterval(scheduleBackgroundMusic, 220);
-  updateMusicToggle();
-  return true;
 }
 
-function stopBackgroundMusic() {
-  musicEnabled = false;
-  window.clearInterval(musicTimer);
-  musicTimer = undefined;
-
-  if (musicGain && clickAudioContext) {
-    musicGain.gain.cancelScheduledValues(clickAudioContext.currentTime);
-    musicGain.gain.setTargetAtTime(.0001, clickAudioContext.currentTime, .035);
+async function toggleBackgroundMusic() {
+  if (!backgroundMusic.paused && !backgroundMusic.ended) {
+    backgroundMusic.pause();
+    return;
   }
 
-  updateMusicToggle();
+  await startBackgroundMusic();
+}
+
+function retryBlockedAutoplay(event) {
+  if (event.target === musicWidget || musicWidget.contains(event.target) || !musicAutoplayBlocked) return;
+
+  window.removeEventListener("pointerdown", retryBlockedAutoplay, true);
+  window.removeEventListener("keydown", retryBlockedAutoplay, true);
+  void startBackgroundMusic();
 }
 
 function playTrumpetSound() {
@@ -354,6 +327,51 @@ function pressPawCursor(event) {
   }, 280);
 }
 
+function dodgeNoButton(event) {
+  const choicesRect = loveChoices.getBoundingClientRect();
+  const noRect = loveNo.getBoundingClientRect();
+  const yesRect = loveYes.getBoundingClientRect();
+  const maxLeft = Math.max(0, choicesRect.width - noRect.width);
+  const maxTop = Math.max(0, choicesRect.height - noRect.height);
+  const yes = {
+    left: yesRect.left - choicesRect.left,
+    top: yesRect.top - choicesRect.top,
+    right: yesRect.right - choicesRect.left,
+    bottom: yesRect.bottom - choicesRect.top,
+  };
+  const pointerX = event && Number.isFinite(event.clientX)
+    ? event.clientX - choicesRect.left
+    : noRect.left - choicesRect.left + noRect.width / 2;
+  const pointerY = event && Number.isFinite(event.clientY)
+    ? event.clientY - choicesRect.top
+    : noRect.top - choicesRect.top + noRect.height / 2;
+  const currentLeft = noRect.left - choicesRect.left;
+  const currentTop = noRect.top - choicesRect.top;
+  let bestPosition = { left: currentLeft, top: currentTop, distance: -1 };
+
+  for (let row = 0; row <= 8; row++) {
+    for (let column = 0; column <= 12; column++) {
+      const left = maxLeft * column / 12;
+      const top = maxTop * row / 8;
+      const overlapsYes = left < yes.right + 10
+        && left + noRect.width > yes.left - 10
+        && top < yes.bottom + 8
+        && top + noRect.height > yes.top - 8;
+      if (overlapsYes) continue;
+
+      const dx = Math.max(left - pointerX, 0, pointerX - (left + noRect.width));
+      const dy = Math.max(top - pointerY, 0, pointerY - (top + noRect.height));
+      const distanceFromPointer = Math.hypot(dx, dy);
+      const distanceFromCurrent = Math.hypot(left - currentLeft, top - currentTop);
+      const score = distanceFromPointer + Math.min(distanceFromCurrent, 100) * .2;
+      if (score > bestPosition.distance) bestPosition = { left, top, distance: score };
+    }
+  }
+
+  loveNo.style.left = `${bestPosition.left}px`;
+  loveNo.style.top = `${bestPosition.top}px`;
+}
+
 async function replayCardCatTrumpet() {
   await waitForMotion(letterCat, "animationend", "cat-trumpet", motion.trumpet, () => {
     letterCat.classList.remove("is-trumpet-playing");
@@ -367,7 +385,9 @@ async function replayCardCatTrumpet() {
 async function openLetter() {
   if (state !== "closed") return;
 
-  if (!musicPreferenceSet) startBackgroundMusic();
+  loveAnswer.textContent = "";
+  loveNo.style.left = "";
+  loveNo.style.top = "";
   state = "opening";
   envelope.disabled = true;
   status.textContent = "Phong thư đang mở…";
@@ -406,7 +426,7 @@ async function openLetter() {
   giftTrigger.hidden = false;
   giftTrigger.disabled = false;
   giftTrigger.textContent = "🎁 Mở quà";
-  status.textContent = "Lá thư đã mở. Chúc bạn một ngày 20/10 thật vui!";
+  status.textContent = "Lá thư đã mở. Chúc Bống luôn vui vẻ!";
   cardTitle.focus();
 }
 
@@ -419,7 +439,7 @@ async function openGift() {
   restart.disabled = true;
   giftClose.hidden = true;
   giftPanel.hidden = false;
-  giftDialog.appendChild(musicToggle);
+  giftDialog.appendChild(musicWidget);
   giftPanel.tabIndex = -1;
   giftTrigger.setAttribute("aria-expanded", "true");
   status.textContent = "Món quà đang được mở…";
@@ -479,7 +499,7 @@ async function closeGift({ returnFocus = true } = {}) {
 
   giftBox.classList.remove("is-box-closing");
   giftPanel.hidden = true;
-  stage.appendChild(musicToggle);
+  stage.appendChild(musicWidget);
   giftTrigger.setAttribute("aria-expanded", "false");
   giftTrigger.disabled = false;
   giftTrigger.textContent = "🎁 Mở quà";
@@ -528,6 +548,9 @@ async function closeLetter() {
   envelope.classList.remove("is-unlocked");
 
   state = "closed";
+  loveAnswer.textContent = "";
+  loveNo.style.left = "";
+  loveNo.style.top = "";
   envelope.disabled = false;
   envelope.setAttribute("aria-expanded", "false");
   giftTrigger.setAttribute("aria-expanded", "false");
@@ -556,11 +579,57 @@ giftClose.addEventListener("click", () => {
   void closeGift();
 });
 
-musicToggle.addEventListener("click", () => {
-  musicPreferenceSet = true;
-  if (musicEnabled) stopBackgroundMusic();
-  else startBackgroundMusic();
+loveYes.addEventListener("click", () => {
+  loveAnswer.textContent = "bin biết mà! bin vuii lắm yoo mosstt !!";
 });
+
+loveNo.addEventListener("pointerenter", (event) => {
+  if (event.pointerType !== "mouse" || Date.now() - lastNoDodgeAt < 80) return;
+  lastNoDodgeAt = Date.now();
+  dodgeNoButton(event);
+});
+
+loveChoices.addEventListener("pointermove", (event) => {
+  if (event.pointerType !== "mouse") return;
+  if (Date.now() - lastNoDodgeAt < 80) return;
+
+  const noRect = loveNo.getBoundingClientRect();
+  const dx = Math.max(noRect.left - event.clientX, 0, event.clientX - noRect.right);
+  const dy = Math.max(noRect.top - event.clientY, 0, event.clientY - noRect.bottom);
+  if (Math.hypot(dx, dy) > 140) return;
+
+  lastNoDodgeAt = Date.now();
+  dodgeNoButton(event);
+});
+
+loveNo.addEventListener("pointerdown", (event) => {
+  if (event.pointerType !== "mouse") return;
+  event.preventDefault();
+  lastNoDodgeAt = Date.now();
+  dodgeNoButton(event);
+});
+
+loveNo.addEventListener("click", (event) => {
+  loveAnswer.textContent = "Chữ “Không” chạy mất rồi! Chọn “Có” nha ♡";
+  lastNoDodgeAt = Date.now();
+  dodgeNoButton(event);
+});
+
+musicToggle.addEventListener("click", () => {
+  void toggleBackgroundMusic();
+});
+
+backgroundMusic.addEventListener("play", updateMusicToggle);
+backgroundMusic.addEventListener("pause", updateMusicToggle);
+backgroundMusic.addEventListener("ended", updateMusicToggle);
+backgroundMusic.addEventListener("error", () => {
+  updateMusicToggle();
+  status.textContent = "Không tải được tệp nhạc. Hãy kiểm tra tệp trong thư mục assets.";
+});
+
+window.addEventListener("pointerdown", retryBlockedAutoplay, true);
+window.addEventListener("keydown", retryBlockedAutoplay, true);
+void startBackgroundMusic();
 
 giftPanel.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && state === "giftOpened") {
@@ -592,7 +661,6 @@ giftPanel.addEventListener("keydown", (event) => {
 
 window.addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;
-  if (event.target !== musicToggle && !musicPreferenceSet && !musicEnabled) startBackgroundMusic();
   pressPawCursor(event);
   playClickSound();
   burstRoses(event);

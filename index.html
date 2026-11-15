@@ -4,14 +4,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fff0f5">
-    <meta name="description" content="Một tấm thiệp nhỏ gửi lời chúc yêu thương nhân ngày Phụ nữ Việt Nam 20/10.">
-    <title>Chúc mừng ngày 20/10 ♡</title>
+    <meta name="description" content="Một bức thư nhỏ gửi đến cô gái Bin luôn yêu quý.">
+    <title>Một bức thư nhỏ ♡</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
   </head>
   <body>
-    <main class="stage" aria-label="Thiệp chúc mừng ngày Phụ nữ Việt Nam 20/10">
-      <button class="music-toggle" id="musicToggle" type="button" aria-pressed="false">♫ Bật nhạc</button>
+    <main class="stage" aria-label="Bức thư gửi Bống">
+      <div class="music-widget" id="musicWidget">
+        <button class="music-toggle" id="musicToggle" type="button" aria-pressed="false">♫ Bật nhạc</button>
+        <audio id="backgroundMusic" preload="auto" autoplay loop>
+          <source src="assets/v%E1%BA%A1n%20v%E1%BA%ADt%20nh%C6%B0%20mu%E1%BB%91n%20ta%20b%C3%AAn%20nhau.mp3" type="audio/mpeg">
+        </audio>
+      </div>
       <span class="decoration decoration-one" aria-hidden="true">♡</span>
       <span class="decoration decoration-two" aria-hidden="true">✿</span>
       <span class="decoration decoration-three" aria-hidden="true">✧</span>
@@ -21,7 +26,6 @@
       <span class="scene-sticker sticker-heart" aria-hidden="true">♥</span>
       <span class="scene-sticker sticker-sparkle" aria-hidden="true">✧</span>
       <span class="scene-sticker sticker-ribbon" aria-hidden="true">🎀</span>
-      <span class="scene-date" aria-hidden="true"><strong>20</strong><span>tháng 10</span></span>
       <span class="scene-note" aria-hidden="true">Gửi chút yêu thương ♡</span>
       <div class="paw-burst" id="pawBurst" aria-hidden="true"></div>
       <div class="rose-burst" id="roseBurst" aria-hidden="true"></div>
@@ -31,7 +35,7 @@
           class="envelope"
           id="envelope"
           type="button"
-          aria-label="Nhấn để mở thư chúc mừng 20/10"
+          aria-label="Nhấn để mở thư"
           aria-expanded="false"
           aria-controls="greetingCard"
         >
@@ -59,14 +63,29 @@
             <span>♡</span>
           </span>
         </button>
-        <p class="dedication">Một bức tâm thư chỉ có người có một tâm hồn đẹp mới có thể mở ra được</p>
+        <p class="dedication">chỉ có những con người có tâm hồn đẹp mới có thể mở được bức thư của thánh masala</p>
       </section>
 
       <article class="card" id="greetingCard" aria-labelledby="cardTitle" hidden>
         <section class="message">
-          <p class="eyebrow">Gửi bạn yêu thương</p>
-          <h1 id="cardTitle" tabindex="-1">Chúc mừng <span>20/10!</span></h1>
-          <p class="greeting">Chúc bạn luôn rạng rỡ như hoa, dịu dàng với chính mình và gặp thật nhiều điều tử tế. Mong mỗi ngày của bạn đều có niềm vui, tiếng cười và những người chân thành ở bên.</p>
+          <p class="eyebrow">Bin gửi Bống yêu thương</p>
+          <h1 class="letter-title" id="cardTitle" tabindex="-1">TING TING TING!!! 📢</h1>
+          <div class="greeting">
+            <p>Xin chúc mừng cô gái nhỏ đã chính thức vượt qua toàn bộ các môn thi!!!</p>
+            <p>Từ giờ không cần phải lo lắng về bài vở nữa. Hãy ăn no, ngủ ngoan, đi chơi thật vui và nhớ phải chăm sóc bản thân thật tốt nhé.</p>
+            <p>Bin không biết kết quả sẽ như thế nào, nhưng Bin biết Bống đã cố gắng nhiều lắm rồi. Bin tự hào về Bống lắm!</p>
+            <p>Lời cuối, Bin chỉ muốn nói là... Bin cũng không biết phải diễn tả thế nào nữa. Từ khi gặp Bống, Bin đã thích Bống và cảm thấy Bống rất hợp với Bin. Nhưng tụi mình lại ở xa nhau quá, Bống ạ.</p>
+            <p>Bin có một thắc mắc là: Nếu có một ngày, tụi mình bỏ lỡ tin nhắn của nhau, liệu hai đứa mình còn dành năng lượng cho nhau nữa không?</p>
+            <p class="letter-signoff">Thương Bống,<br>Bin ♡</p>
+          </div>
+          <section class="love-question" aria-labelledby="loveQuestionTitle">
+            <h2 id="loveQuestionTitle">Bống có yêu Bin không?</h2>
+            <div class="love-choices" id="loveChoices">
+              <button class="love-yes" id="loveYes" type="button">Có ♡</button>
+              <button class="love-no" id="loveNo" type="button" aria-describedby="loveAnswer">Không</button>
+            </div>
+            <p class="love-answer" id="loveAnswer" aria-live="polite"></p>
+          </section>
           <span class="heart" aria-hidden="true">♡</span>
           <div class="actions">
             <button class="restart" id="restart" type="button" disabled>Gấp thư lại ♡</button>
@@ -83,7 +102,7 @@
 
         <section class="gift-panel" id="giftPanel" role="dialog" aria-modal="true" aria-labelledby="giftTitle" aria-describedby="giftMessage" hidden>
           <div class="gift-dialog">
-            <h2 class="sr-only" id="giftTitle">Một món quà muốn gửi bạn</h2>
+            <h2 class="sr-only" id="giftTitle">Một món quà nhỏ gửi Bống</h2>
             <div class="gift-scene" id="giftScene">
               <span class="gift-sparkle sparkle-one" aria-hidden="true">✦</span>
               <span class="gift-sparkle sparkle-two" aria-hidden="true">♡</span>
@@ -94,7 +113,7 @@
                   <path id="giftTitleArcPath" d="M 30 112 Q 245 -20 460 112"></path>
                 </defs>
                 <text>
-                  <textPath href="#giftTitleArcPath" startOffset="50%" text-anchor="middle">Một món quà muốn gửi bạn</textPath>
+                  <textPath href="#giftTitleArcPath" startOffset="50%" text-anchor="middle">Một món quà nhỏ gửi Bống</textPath>
                 </text>
               </svg>
               <img class="gift-kitten" id="giftKitten" src="assets/kitten-gift.png" alt="Mèo con đeo kính ôm bó hoa hồng, trồi lên từ hộp quà" width="573" height="928" decoding="async">
@@ -103,7 +122,7 @@
                 <div class="gift-base"><span class="base-ribbon"></span><span class="gift-heart">♡</span></div>
               </div>
             </div>
-            <p class="gift-message" id="giftMessage">Một bó hoa dành tặng bạn 🌷 Chúc bạn luôn rạng rỡ và hạnh phúc!</p>
+            <p class="gift-message" id="giftMessage">Một bó hoa dành tặng Bống 🌷 Chúc Bống luôn vui vẻ và full aura masala! ♡</p>
             <div class="gift-actions">
               <button class="gift-close" id="giftClose" type="button" hidden>Đóng quà ♡</button>
             </div>
